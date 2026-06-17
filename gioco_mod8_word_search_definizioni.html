@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>MOD8 – Cerca le Parole: Definizioni GDPR</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#004d40,#00695c);min-height:100vh;overflow:hidden;display:flex;justify-content:center;align-items:center}
+.container{background:#fff;width:800px;height:550px;display:flex;flex-direction:column;border-radius:10px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.header{background:linear-gradient(135deg,#004d40,#00695c);color:#fff;padding:10px 18px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.header h1{font-size:15px;font-weight:700}.header p{font-size:11px;opacity:.8;margin-top:1px}
+button{padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s}
+.btn-white{background:#fff;color:#004d40}.btn-white:hover{background:#e0f2f1}
+.btn-outline{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4)}.btn-outline:hover{background:rgba(255,255,255,.25)}
+.btn-group{display:flex;gap:8px}
+.status-bar{display:flex;align-items:center;gap:16px;padding:6px 14px;background:#f5f5f5;border-bottom:1px solid #e0e0e0;flex-shrink:0;font-size:12px;color:#555}
+.found-badge{background:#004d40;color:#fff;border-radius:20px;padding:2px 12px;font-size:12px;font-weight:700}
+.game-area{flex:1;display:flex;gap:0;overflow:hidden;min-height:0;position:relative}
+.grid-wrap{flex:1.4;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+.grid-table{border-collapse:collapse;user-select:none}
+.grid-table td{width:26px;height:26px;text-align:center;vertical-align:middle;font-size:13px;font-weight:700;color:#333;cursor:pointer;border-radius:3px;transition:background .1s}
+.grid-table td:hover{background:#e0f2f1}
+.grid-table td.selecting{background:#80cbc4;color:#fff}
+.grid-table td.found-0{background:#004d40;color:#fff}
+.grid-table td.found-1{background:#00695c;color:#fff}
+.grid-table td.found-2{background:#00796b;color:#fff}
+.grid-table td.found-3{background:#00897b;color:#fff}
+.grid-table td.found-4{background:#009688;color:#fff}
+.word-panel{width:210px;flex-shrink:0;padding:10px 12px;border-left:1px solid #e0e0e0;background:#fafafa;display:flex;flex-direction:column;gap:6px;overflow-y:auto}
+.word-panel h2{font-size:12px;font-weight:700;color:#004d40;flex-shrink:0}
+.word-list{display:flex;flex-direction:column;gap:3px;flex:1}
+.word-item{background:#fff;border:2px solid #b2dfdb;border-radius:6px;padding:4px 8px;font-size:10px;font-weight:700;color:#555;transition:all .3s;display:flex;align-items:center;gap:5px}
+.word-item.found-word{border-color:#004d40;background:#e0f2f1;color:#004d40;text-decoration:line-through;opacity:.7}
+.word-item .wi{font-size:13px}
+.hint-box{background:#e0f2f1;border-left:3px solid #00695c;border-radius:5px;padding:6px 8px;font-size:10px;color:#004d40;line-height:1.5;flex-shrink:0}
+.win-overlay{position:absolute;inset:0;background:rgba(0,77,64,.93);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:400;animation:fadeIn .4s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.win-overlay h2{color:#fff;font-size:22px;font-weight:700}
+.win-overlay p{color:#b2dfdb;font-size:13px;text-align:center;max-width:320px;line-height:1.5}
+.win-stats{display:flex;gap:10px}
+.win-stat{background:rgba(255,255,255,.15);border-radius:8px;padding:8px 16px;color:#fff;font-size:13px;font-weight:700;text-align:center}
+.win-stat span{display:block;font-size:10px;opacity:.8;margin-bottom:2px}
+.btn-win{background:#fff;color:#004d40;padding:9px 24px;font-size:13px;border-radius:8px;font-weight:700;margin-top:4px;cursor:pointer;border:none}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div><h1>📖 Cerca le Parole – Definizioni del GDPR</h1><p>Modulo 8 – Il Registro dei Trattamenti</p></div>
+    <div class="btn-group">
+      <button class="btn-outline" onclick="resetGame()">🔄 Rigioca</button>
+      <button class="btn-white" onclick="window.close()">Torna al corso</button>
+    </div>
+  </div>
+  <div class="status-bar">
+    <span class="found-badge">Trovate: <span id="foundCount">0</span>/10</span>
+    <span style="font-size:11px;color:#888">Clicca sulla prima lettera e trascina fino all'ultima</span>
+  </div>
+  <div class="game-area">
+    <div class="grid-wrap"><table class="grid-table" id="gridTable"></table></div>
+    <div class="word-panel">
+      <h2>🔍 Parole da trovare</h2>
+      <div class="word-list" id="wordList"></div>
+      <div class="hint-box">💡 Orizzontali, verticali o diagonali — in entrambe le direzioni.</div>
+    </div>
+  </div>
+</div>
+<script>
+const WORDS=[
+  {word:'TRATTAMENTO',icon:'⚙️'},
+  {word:'PSEUDONIMO',icon:'🎭'},
+  {word:'ANONIMO',icon:'👤'},
+  {word:'PROFILAZIONE',icon:'📊'},
+  {word:'CONSENSO',icon:'✅'},
+  {word:'TITOLARE',icon:'🏢'},
+  {word:'INTERESSATO',icon:'👥'},
+  {word:'PORTABILITA',icon:'📦'},
+  {word:'TRASPARENZA',icon:'📉'},
+  {word:'RESPONSABILE',icon:'🔑'},
+];
+const SIZE=15;
+let grid=[],placedWords=[],foundWords=[],selecting=false,startCell=null,currentCells=[];
+function buildGrid(){grid=Array.from({length:SIZE},()=>Array(SIZE).fill(''));placedWords=[];const dirs=[[0,1],[1,0],[1,1],[-1,1],[0,-1],[-1,0],[-1,-1],[1,-1]];for(const{word}of WORDS){let ok=false;for(let att=0;att<300&&!ok;att++){const dir=dirs[Math.floor(Math.random()*dirs.length)];const r=Math.floor(Math.random()*SIZE),c=Math.floor(Math.random()*SIZE);const cells=[];let valid=true;for(let i=0;i<word.length;i++){const nr=r+dir[0]*i,nc=c+dir[1]*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE){valid=false;break;}if(grid[nr][nc]!==''&&grid[nr][nc]!==word[i]){valid=false;break;}cells.push([nr,nc]);}if(valid){cells.forEach(([nr,nc],i)=>grid[nr][nc]=word[i]);placedWords.push({word,cells});ok=true;}}}const L='ABCDEFGHIJKLMNOPQRSTUVWXYZ';for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)if(!grid[r][c])grid[r][c]=L[Math.floor(Math.random()*26)];}
+function renderGrid(){const table=document.getElementById('gridTable');table.innerHTML='';for(let r=0;r<SIZE;r++){const tr=document.createElement('tr');for(let c=0;c<SIZE;c++){const td=document.createElement('td');td.textContent=grid[r][c];td.dataset.r=r;td.dataset.c=c;td.addEventListener('mousedown',onDown);td.addEventListener('mouseenter',onEnter);tr.appendChild(td);}table.appendChild(tr);}document.addEventListener('mouseup',onUp);}
+function renderWords(){const list=document.getElementById('wordList');list.innerHTML='';WORDS.forEach(({word,icon})=>{const d=document.createElement('div');d.className='word-item'+(foundWords.includes(word)?' found-word':'');d.id='wi-'+word;d.innerHTML=`<span class="wi">${icon}</span><span>${word}</span>`;list.appendChild(d);});}
+function getCell(r,c){return document.querySelector(`td[data-r="${r}"][data-c="${c}"]`);}
+function onDown(e){selecting=true;startCell={r:+e.target.dataset.r,c:+e.target.dataset.c};currentCells=[{...startCell}];clearSel();e.target.classList.add('selecting');e.preventDefault();}
+function onEnter(e){if(!selecting||!startCell)return;const r=+e.target.dataset.r,c=+e.target.dataset.c;const dr=r-startCell.r,dc=c-startCell.c;const len=Math.max(Math.abs(dr),Math.abs(dc));if(len===0)return;if(Math.abs(dr)!==Math.abs(dc)&&dr!==0&&dc!==0)return;const sr=dr===0?0:dr/Math.abs(dr),sc=dc===0?0:dc/Math.abs(dc);clearSel();currentCells=[];for(let i=0;i<=len;i++){const nr=startCell.r+sr*i,nc=startCell.c+sc*i;currentCells.push({r:nr,c:nc});const cell=getCell(nr,nc);if(cell&&!cell.className.includes('found-'))cell.classList.add('selecting');}}
+function onUp(){if(!selecting)return;selecting=false;const cellKey=c=>`${c.r},${c.c}`;const selKey=currentCells.map(cellKey).join('|');let matched=null;for(const pw of placedWords){if(foundWords.includes(pw.word))continue;const fwd=pw.cells.map(([r,c])=>cellKey({r,c})).join('|');const rev=pw.cells.map(([r,c])=>cellKey({r,c})).reverse().join('|');if(selKey===fwd||selKey===rev){matched=pw;break;}}if(matched){foundWords.push(matched.word);document.getElementById('foundCount').textContent=foundWords.length;const colorClass='found-'+(foundWords.length%5);currentCells.forEach(({r,c})=>{const cell=getCell(r,c);if(cell){cell.classList.remove('selecting');cell.classList.add(colorClass);}});document.getElementById('wi-'+matched.word)?.classList.add('found-word');if(foundWords.length===WORDS.length)setTimeout(showWin,400);}else{clearSel();}currentCells=[];startCell=null;}
+function clearSel(){document.querySelectorAll('.selecting').forEach(el=>el.classList.remove('selecting'));}
+function showWin(){const area=document.querySelector('.game-area');const win=document.createElement('div');win.className='win-overlay';win.innerHTML=`<div style="font-size:52px">🎉</div><h2>Tutte le parole trovate!</h2><p>Ottimo! Trattamento, pseudonimizzazione, minimizzazione e portabilità sono concetti chiave del GDPR che ogni titolare e responsabile deve conoscere.</p><div class="win-stats"><div class="win-stat"><span>Trovate</span>${foundWords.length}/10</div></div><button class="btn-win" onclick="resetGame()">🔄 Rigioca</button>`;area.appendChild(win);}
+function resetGame(){document.querySelector('.win-overlay')?.remove();foundWords=[];document.getElementById('foundCount').textContent='0';buildGrid();renderGrid();renderWords();}
+resetGame();
+</script>
+</body>
+</html>
